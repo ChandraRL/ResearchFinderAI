@@ -47,7 +47,8 @@ type RecentSearch = {
   timestamp: number;
 };
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 const FAVORITES_KEY = "researchfinder-favorite-papers";
 const RECENT_KEY = "researchfinder-recent-searches";
 

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 
 type Paper = {
   id: string;
@@ -239,25 +242,18 @@ export default function Home() {
       return;
     }
 
-    if (!paper.abstract.trim()) {
-      setAssistantErrors((current) => ({
-        ...current,
-        [paper.id]: "Abstrak paper tidak tersedia untuk dianalisis.",
-      }));
-      return;
-    }
-
     setAssistantLoading(paper.id);
     setAssistantErrors((current) => ({ ...current, [paper.id]: "" }));
 
     try {
-      const response = await fetch(`${API_URL}/api/assistant`, {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: paper.title,
-          abstract: paper.abstract,
-          question,
+          message: question,
+          history: [],
+          paper_title: paper.title,
+          paper_abstract: paper.abstract || "",
         }),
       });
 
@@ -368,11 +364,10 @@ export default function Home() {
                 setViewMode("discover");
                 setError("");
               }}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
-                viewMode === "discover"
-                  ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${viewMode === "discover"
+                ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
+                : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                }`}
             >
               <span>⌕</span> Discover Papers
             </button>
@@ -383,11 +378,10 @@ export default function Home() {
                 setViewMode("recent");
                 setError("");
               }}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
-                viewMode === "recent"
-                  ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${viewMode === "recent"
+                ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
+                : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                }`}
             >
               <span>◷</span> Recent Search
               <span className="ml-auto rounded-md bg-white/[0.06] px-2 py-0.5 text-xs">
@@ -401,11 +395,10 @@ export default function Home() {
                 setViewMode("saved");
                 setError("");
               }}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
-                viewMode === "saved"
-                  ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${viewMode === "saved"
+                ? "border border-indigo-400/15 bg-indigo-500/10 font-medium text-indigo-200"
+                : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                }`}
             >
               <span>☆</span> Saved Papers
               <span className="ml-auto rounded-md bg-white/[0.06] px-2 py-0.5 text-xs">
@@ -443,7 +436,7 @@ export default function Home() {
 
         {/* MAIN CONTENT */}
         <section className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-9">
-          
+
           {/* MOBILE NAVIGATION */}
           <nav className="mb-6 grid grid-cols-3 gap-2 lg:hidden">
             <button
@@ -452,11 +445,10 @@ export default function Home() {
                 setViewMode("discover");
                 setError("");
               }}
-              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
-                viewMode === "discover"
-                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
-                  : "border-white/10 bg-white/[0.03] text-slate-400"
-              }`}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${viewMode === "discover"
+                ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                : "border-white/10 bg-white/[0.03] text-slate-400"
+                }`}
             >
               ⌕ Discover
             </button>
@@ -467,11 +459,10 @@ export default function Home() {
                 setViewMode("recent");
                 setError("");
               }}
-              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
-                viewMode === "recent"
-                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
-                  : "border-white/10 bg-white/[0.03] text-slate-400"
-              }`}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${viewMode === "recent"
+                ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                : "border-white/10 bg-white/[0.03] text-slate-400"
+                }`}
             >
               ◷ Recent ({recentSearches.length})
             </button>
@@ -482,11 +473,10 @@ export default function Home() {
                 setViewMode("saved");
                 setError("");
               }}
-              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
-                viewMode === "saved"
-                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
-                  : "border-white/10 bg-white/[0.03] text-slate-400"
-              }`}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${viewMode === "saved"
+                ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                : "border-white/10 bg-white/[0.03] text-slate-400"
+                }`}
             >
               ☆ Saved ({favorites.length})
             </button>
@@ -886,7 +876,7 @@ export default function Home() {
                           <p className="mt-2 text-xs leading-5 text-slate-400">
                             {paper.authors.length > 0
                               ? paper.authors.slice(0, 5).join(", ") +
-                                (paper.authors.length > 5 ? " et al." : "")
+                              (paper.authors.length > 5 ? " et al." : "")
                               : "Author information unavailable"}
                           </p>
 
@@ -911,8 +901,8 @@ export default function Home() {
                             </div>
 
                             <p className="mt-2 text-xs leading-5 text-slate-400">
-                              Ajukan pertanyaan untuk menemukan kalimat abstrak
-                              yang paling relevan dengan pertanyaanmu.
+                              Tanyakan temuan, keterbatasan, metodologi, atau ide penelitian
+                              berdasarkan informasi paper yang tersedia.
                             </p>
 
                             <form
@@ -962,44 +952,124 @@ export default function Home() {
                                 <div className="text-xs font-semibold text-emerald-300">
                                   AI Analysis
                                 </div>
-                                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">
-                                  {assistantResults[paper.id].answer}
-                                </p>
+
+                                <div className="prose prose-invert prose-sm mt-3 max-w-none break-words
+                                  prose-headings:font-semibold prose-headings:tracking-tight
+                                  prose-h1:mb-3 prose-h1:mt-5 prose-h1:text-lg prose-h1:text-slate-100
+                                  prose-h2:mb-2 prose-h2:mt-5 prose-h2:text-base prose-h2:text-slate-100
+                                  prose-h3:mb-2 prose-h3:mt-4 prose-h3:text-sm prose-h3:text-slate-100
+                                  prose-p:my-3 prose-p:leading-7 prose-p:text-slate-300
+                                  prose-strong:font-semibold prose-strong:text-indigo-100
+                                  prose-li:my-1 prose-li:leading-6 prose-li:text-slate-300
+                                  prose-ul:my-3 prose-ol:my-3
+                                  prose-a:text-indigo-300 prose-a:underline
+                                  prose-blockquote:border-indigo-400/40 prose-blockquote:text-slate-400
+                                  prose-hr:border-white/10
+                                  &_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto
+                                  [&_table]:border-collapse
+                                  [&_th]:border [&_th]:border-white/10 [&_th]:bg-white/[0.05]
+                                  [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-slate-200
+                                  [&_td]:border [&_td]:border-white/10 [&_td]:px-3 [&_td]:py-2
+                                  [&_td]:text-slate-300
+                                  [&_code]:rounded [&_code]:bg-white/[0.07] [&_code]:px-1.5
+                                  [&_code]:py-0.5 [&_code]:text-indigo-200
+                                  [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-[#090e1a]
+                                  [&_pre]:p-4">
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                      h1: ({ children }) => (
+                                        <h1 className="mb-3 mt-4 text-xl font-bold text-white">
+                                          {children}
+                                        </h1>
+                                      ),
+                                      h2: ({ children }) => (
+                                        <h2 className="mb-2 mt-4 text-lg font-bold text-white">
+                                          {children}
+                                        </h2>
+                                      ),
+                                      h3: ({ children }) => (
+                                        <h3 className="mb-2 mt-3 text-base font-semibold text-white">
+                                          {children}
+                                        </h3>
+                                      ),
+                                      p: ({ children }) => (
+                                        <p className="mb-3">{children}</p>
+                                      ),
+                                      ul: ({ children }) => (
+                                        <ul className="mb-3 list-disc space-y-1 pl-5">
+                                          {children}
+                                        </ul>
+                                      ),
+                                      ol: ({ children }) => (
+                                        <ol className="mb-3 list-decimal space-y-1 pl-5">
+                                          {children}
+                                        </ol>
+                                      ),
+                                      strong: ({ children }) => (
+                                        <strong className="font-semibold text-white">{children}</strong>
+                                      ),
+                                      table: ({ children }) => (
+                                        <div className="mb-3 overflow-x-auto">
+                                          <table className="w-full border-collapse text-left text-sm">
+                                            {children}
+                                          </table>
+                                        </div>
+                                      ),
+                                      th: ({ children }) => (
+                                        <th className="border border-white/10 bg-white/5 p-2 font-semibold text-white">
+                                          {children}
+                                        </th>
+                                      ),
+                                      td: ({ children }) => (
+                                        <td className="border border-white/10 p-2 align-top">{children}</td>
+                                      ),
+                                      code: ({ children }) => (
+                                        <code className="rounded bg-white/10 px-1.5 py-0.5 text-emerald-300">
+                                          {children}
+                                        </code>
+                                      ),
+                                    }}
+                                  >
+                                    {assistantResults[paper.id].answer}
+                                  </ReactMarkdown>
+                                </div>
+
 
                                 {assistantResults[paper.id].evidence.length >
                                   0 && (
-                                  <div className="mt-4">
-                                    <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                                      Supporting evidence
-                                    </div>
-                                    <div className="space-y-2">
-                                      {assistantResults[
-                                        paper.id
-                                      ].evidence.map((item, evidenceIndex) => (
-                                        <div
-                                          key={`${paper.id}-evidence-${evidenceIndex}`}
-                                          className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3"
-                                        >
-                                          <p className="text-xs leading-6 text-slate-300">
-                                            “{item.text}”
-                                          </p>
-                                          {typeof item.similarity ===
-                                            "number" && (
-                                            <p className="mt-2 text-[10px] text-slate-500">
-                                              Semantic similarity:{" "}
-                                              {item.similarity.toFixed(3)}
+                                    <div className="mt-4">
+                                      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                                        Supporting evidence
+                                      </div>
+                                      <div className="space-y-2">
+                                        {assistantResults[
+                                          paper.id
+                                        ].evidence.map((item, evidenceIndex) => (
+                                          <div
+                                            key={`${paper.id}-evidence-${evidenceIndex}`}
+                                            className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3"
+                                          >
+                                            <p className="text-xs leading-6 text-slate-300">
+                                              “{item.text}”
                                             </p>
-                                          )}
-                                        </div>
-                                      ))}
+                                            {typeof item.similarity ===
+                                              "number" && (
+                                                <p className="mt-2 text-[10px] text-slate-500">
+                                                  Semantic similarity:{" "}
+                                                  {item.similarity.toFixed(3)}
+                                                </p>
+                                              )}
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
                                 <p className="mt-3 text-[10px] leading-5 text-slate-500">
-                                  Hasil berdasarkan kemiripan semantik dengan
-                                  abstrak, bukan jawaban yang dihasilkan LLM.
-                                  Periksa kembali konteks paper asli.
+                                  Jawaban dihasilkan oleh Gemini AI berdasarkan informasi paper
+                                  yang tersedia. Jika abstrak tidak tersedia, jawaban mungkin lebih terbatas.
+                                  Periksa kembali sumber penelitian aslinya.
                                 </p>
                               </div>
                             )}
@@ -1022,11 +1092,10 @@ export default function Home() {
                               type="button"
                               onClick={() => toggleFavorite(paper)}
                               aria-pressed={isFavorite(paper.id)}
-                              className={`rounded-lg border px-3 py-2 text-xs transition ${
-                                isFavorite(paper.id)
-                                  ? "border-amber-300/30 bg-amber-300/10 text-amber-200"
-                                  : "border-white/10 text-slate-400 hover:text-white"
-                              }`}
+                              className={`rounded-lg border px-3 py-2 text-xs transition ${isFavorite(paper.id)
+                                ? "border-amber-300/30 bg-amber-300/10 text-amber-200"
+                                : "border-white/10 text-slate-400 hover:text-white"
+                                }`}
                             >
                               {isFavorite(paper.id)
                                 ? "★ Saved"

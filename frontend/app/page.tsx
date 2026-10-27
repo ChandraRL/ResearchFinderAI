@@ -443,6 +443,55 @@ export default function Home() {
 
         {/* MAIN CONTENT */}
         <section className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-9">
+          
+          {/* MOBILE NAVIGATION */}
+          <nav className="mb-6 grid grid-cols-3 gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("discover");
+                setError("");
+              }}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
+                viewMode === "discover"
+                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                  : "border-white/10 bg-white/[0.03] text-slate-400"
+              }`}
+            >
+              ⌕ Discover
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("recent");
+                setError("");
+              }}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
+                viewMode === "recent"
+                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                  : "border-white/10 bg-white/[0.03] text-slate-400"
+              }`}
+            >
+              ◷ Recent ({recentSearches.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("saved");
+                setError("");
+              }}
+              className={`rounded-xl border px-3 py-3 text-xs font-medium transition ${
+                viewMode === "saved"
+                  ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"
+                  : "border-white/10 bg-white/[0.03] text-slate-400"
+              }`}
+            >
+              ☆ Saved ({favorites.length})
+            </button>
+          </nav>
+
           <header className="mb-10 flex items-center justify-between gap-4">
             <div>
               <div className="text-xs text-slate-500">
